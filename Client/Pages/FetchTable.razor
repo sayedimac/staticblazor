@@ -1,0 +1,87 @@
+﻿@page "/fetchtable"
+@using JStatic.Shared
+@* @using Microsoft.AspNetCore.WebUtilities *@
+@inject HttpClient Http
+
+<h1>Submit new Table data</h1>
+<EditForm Model="@Model" OnSubmit="@Submit" FormName="SalesOrder">
+    <InputText @bind-Value="Model!.RowKey" />
+    <InputText @bind-Value="Model!.PartitionKey" />
+    <InputText @bind-Value="Model!.Name" />
+    <InputText @bind-Value="Model!.Qty" />
+    <InputText @bind-Value="Model!.Sale" />
+    <button type="submit">Submit</button>
+</EditForm>
+<h1>Retrieve Storage Table rows</h1>
+
+<p>This component demonstrates fetching rows from a storage account Table</p>
+@if (theItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>
+    <select @onchange="@OnSelect">
+        <option value="order1">order1</option>
+            <option value="order2">order2</option>
+    </select>
+</p>
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Is Sale</th>
+        </tr>
+        <tr>
+            <th colspan="3">Selected partition is: @SelectedValue</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in theItems)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Sale</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    public Product? Model { get; set; }
+    public Product newProduct = new Product();
+    public string SelectedValue = "order1";
+    private Product[] theItems = new Product[] { };
+
+    void OnSelect(ChangeEventArgs e)
+    {
+        SelectedValue = e.Value.ToString();
+        OnInitializedAsync();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            theItems = await Http.GetFromJsonAsync<Product[]>("/api/querytabledata?partkey=" + SelectedValue) ?? new Product[] { };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    private void Submit()
+    {
+        Logger.LogInformation("Name = {Name}", Model?.Name);
+        //newProduct = await Http.GetFromJsonAsync<Product[]>("/api/settabledata?partkey=" + Model.PartitionKey + "&rowkey" +
+        Model.PartitionKey + "" +) ?? new
+        newProduct = await
+        Http.GetFromJsonAsync<Product[]>("/api/settabledata?partkey=order2&rowkey=row2&name=Widget&qty=5&sale=true") ?? new
+        Product();
+    }
+}

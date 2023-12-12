@@ -1,0 +1,48 @@
+page "/fetchblobs"
+@using JStatic.Shared
+@inject HttpClient Http
+
+<h1>Retrieve BLOB url's</h1>
+
+<p>This component demonstrates fetching BLOB urls from a storage account and
+    then letting the browser render those images directly </p>
+
+@if (theBlobs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                    <th>Name</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var Blob in theBlobs)
+            {
+                <tr>
+                            <td>@Blob.blobName</td>
+                            <td><img src="@Blob.blobUrl" width="50px" height="50px" /></td>
+                </tr>
+            }
+        </tbody>
+        </table>
+}
+
+@code {
+    private BlobObject[] theBlobs = new BlobObject[] { };
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            theBlobs = await Http.GetFromJsonAsync<BlobObject[]>("/api/getblobs") ?? new BlobObject[] { };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+}
